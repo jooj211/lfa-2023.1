@@ -59,4 +59,15 @@ class StateSet:
                 return True
         
         return False
+    
+    def __str__(self) -> str:
+        resp = "{"
+        index = len(self.individuals)
+        for key in self.individuals:
+            resp += key
+            if(index > 1):
+                resp += ', '
+            index -= 1
+        resp += "}"
+        return resp
         

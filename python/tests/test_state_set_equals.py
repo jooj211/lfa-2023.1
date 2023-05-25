@@ -11,8 +11,8 @@ for i in range(50):
     size = 40  # Tamanho da string desejada
     caracteres = string.ascii_letters + string.digits  # Letras maiúsculas, minúsculas e dígitos
 
-    string_aleatoria = ''.join(secrets.choice(caracteres) for _ in range(size))
-    state = Estado.State(string_aleatoria)
+    random_str = ''.join(secrets.choice(caracteres) for _ in range(size))
+    state = Estado.State(random_str)
     state_set_1.include(state)
     state_set_2.include(state)
     
@@ -21,8 +21,8 @@ for i in range(50):
     size = 40  # Tamanho da string desejada
     caracteres = string.ascii_letters + string.digits  # Letras maiúsculas, minúsculas e dígitos
 
-    string_aleatoria = ''.join(secrets.choice(caracteres) for _ in range(size))
-    state = Estado.State(string_aleatoria)
+    random_str = ''.join(secrets.choice(caracteres) for _ in range(size))
+    state = Estado.State(random_str)
     state_set_3.include(state)
     
 
