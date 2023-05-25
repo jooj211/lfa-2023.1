@@ -8,4 +8,12 @@ class State:
     def setName(self, name):
         self.name = name
     
+    def clone(self):
+        state = State()
+        state.setName(self.name)
+        return state
+    
+    def equal(self, state):
+        return state.getName() == self.name
+    
     
