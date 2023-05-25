@@ -28,6 +28,7 @@ class StateSet:
         for key in self.individuals:
             stat = self.individuals[key]
             newSet.include(stat)
+        return newSet
             
     def __eq__(self, __value: object) -> bool:
         newStateSet: StateSet = __value.clone()
@@ -43,4 +44,19 @@ class StateSet:
                 return False
         
         return True
+
+    def __ne__(self, __value: object) -> bool:
+        newStateSet: StateSet = __value.clone()
+        for key in newStateSet.individuals:
+            state = newStateSet.individuals[key]
+            if(not self.belongsTo(state)):
+                return True
+        
+        newStateSet = self.clone()
+        for key in newStateSet.individuals:
+            state = newStateSet.individuals[key]
+            if(not __value.belongsTo(state)):
+                return True
+        
+        return False
         
