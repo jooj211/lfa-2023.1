@@ -1,3 +1,6 @@
+# Autor: Gustavo Gonçalves Silva
+# Coautor: Jona-San
+
 from collections import OrderedDict
 import Estado
 
@@ -29,6 +32,16 @@ class StateSet:
             stat = self.individuals[key]
             newSet.include(stat)
         return newSet
+    
+    def union(self, elem):
+        newStateSet = StateSet()
+        newStateSet = self.clone()
+        for key in elem.individuals:
+            state = elem.individuals[key]
+            if(not newStateSet.belongsTo(state)):
+                newStateSet.include(state)
+                
+        return newStateSet
             
     def __eq__(self, __value: object) -> bool:
         newStateSet: StateSet = __value.clone()
@@ -59,4 +72,15 @@ class StateSet:
                 return True
         
         return False
+    
+    def __str__(self) -> str:
+        resp = "{"
+        index = len(self.individuals)
+        for key in self.individuals:
+            resp += key
+            if(index > 1):
+                resp += ', '
+            index -= 1
+        resp += "}"
+        return resp
         
