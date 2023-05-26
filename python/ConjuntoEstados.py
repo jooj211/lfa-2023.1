@@ -42,6 +42,14 @@ class StateSet:
                 newStateSet.include(state)
                 
         return newStateSet
+    
+    def intersection(self, elem):
+        newStateSet = StateSet()
+        for key in elem.individuals:
+            state = elem.individuals[key]
+            if(self.belongsTo(state)):
+                newStateSet.include(state)
+        return newStateSet
             
     def __eq__(self, __value: object) -> bool:
         newStateSet: StateSet = __value.clone()
@@ -83,4 +91,7 @@ class StateSet:
             index -= 1
         resp += "}"
         return resp
+    
+    def __len__(self):
+        return len(self.individuals)
         
