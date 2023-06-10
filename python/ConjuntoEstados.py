@@ -52,6 +52,10 @@ class StateSet:
         return newStateSet
             
     def __eq__(self, __value: object) -> bool:
+        if(self == None and __value == None):
+            return True
+        if(__value == None):
+            return False
         newStateSet: StateSet = __value.clone()
         for key in newStateSet.individuals:
             state = newStateSet.individuals[key]
@@ -67,6 +71,10 @@ class StateSet:
         return True
 
     def __ne__(self, __value: object) -> bool:
+        if(self == None and __value == None):
+            return False
+        if(__value == None):
+            return True
         newStateSet: StateSet = __value.clone()
         for key in newStateSet.individuals:
             state = newStateSet.individuals[key]

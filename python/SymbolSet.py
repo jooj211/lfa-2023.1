@@ -60,6 +60,18 @@ class SymbolSet:
         newSet = SymbolSet()
         newSet.setSymbolSet(self.individuals)
         return newSet
+    
+    def __str__(self) -> str:
+        resp = "{"
+        index = len(self.individuals)
+        for key in self.individuals:
+            resp += key
+            if(index > 1):
+                resp += ', '
+            index -= 1
+        resp += "}"
+        return resp
+            
         
     def setSymbolSet(self, individuals: OrderedDict):
         self.individuals = individuals

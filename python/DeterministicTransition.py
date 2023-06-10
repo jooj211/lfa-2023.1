@@ -8,8 +8,16 @@ class DeterministicTransition:
         self.symbol = symbol
     
     def clone(self):
-        clon = DeterministicTransition(self.origin, self.destiny, self.symbol)
-        return clon
+        clone = DeterministicTransition(self.origin, self.destiny, self.symbol)
+        return clone
     
     def __eq__(self, __value: object) -> bool:
-        return self.destiny.equal(__value.destiny) and self.origin.equal(__value.origin) and self.symbol.equal(__value.symbol)
+        if(self == None and __value == None):
+            return True
+        if(__value == None):
+            return False
+        return self.destiny == __value.destiny and self.origin == __value.origin and self.symbol == __value.symbol
+    
+    def __str__(self) -> str:
+        ret_str = "{},{},{}".format(self.origin, self.symbol, self.destiny)
+        return ret_str
