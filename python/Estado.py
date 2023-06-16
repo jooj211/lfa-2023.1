@@ -16,4 +16,11 @@ class State:
     def equal(self, state):
         return state.getName() == self.name
     
+    def __eq__(self, __value: object) -> bool:
+        if(self == None and __value == None):
+            return True
+        if(__value == None):
+            return False
+        return self.getName() == __value.name
+    
     
