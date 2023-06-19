@@ -96,7 +96,19 @@ class AFD:
         
         return None
         
+    def pe(self, state: State, word: str) -> State:
+        tmpState = state
+        index = 0
+        while(index < len(word)):
+            symbol = Symbol(word[index])
+            tmpState = self.p(tmpState, symbol)
+            if(tmpState == None):
+                return None
+            index += 1
+        return tmpState
     
+    def accept(self, word: str):
+        return self.final_states.belongsTo(self.pe(self.initial_state, word))
         
     def __str__(self) -> str:
         final_str = "<AFD>\n\t<simbolos>"
