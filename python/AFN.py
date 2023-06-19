@@ -102,3 +102,35 @@ class AFN:
         for key in dic:
             program.include(dic[key])
         self.program_function = program
+        
+    def pe(self, state: State, word: str) -> StateSet:
+        states = StateSet()
+        if len(word) == 0:
+            self.epsilon_closure(state, states)
+            return states
+
+        states_to_process = [state]
+        while len(states_to_process) > 0:
+            current_state = states_to_process.pop()
+            self.epsilon_closure(current_state, states)
+
+            for symbol in self.symbols.individuals:
+                if str(symbol) == word[0]:
+                    for transition in self.program_function.individuals:
+                        if transition.origin == current_state and str(transition.symbol) == str(symbol):
+                            for destiny_state in transition.destiny.individuals:
+                                new_states = self.pe(destiny_state, word[1:])
+                                for new_state in new_states.individuals:
+                                    if not states.is_member(new_state):
+                                        states_to_process.append(new_state)
+                                        states.include(new_state)
+        return states
+
+    def epsilon_closure(self, state: State, states: StateSet):
+        if states.is_member(state):
+            return
+        states.include(state)
+        for transition in self.program_function.individuals:
+            if transition.origin == state and str(transition.symbol) == 'epsilon':
+                for destiny_state in transition.destiny.individuals:
+                    self.epsilon_closure(destiny_state, states)
