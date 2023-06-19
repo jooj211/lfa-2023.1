@@ -1,150 +1,127 @@
-from xml.dom import minidom
-from copy import deepcopy
+from SymbolSet import SymbolSet
+from ConjuntoEstados import StateSet
+from DeterministicTransitionSet import DeterministicTransitionSet
+from DeterministicTransition import DeterministicTransition
+from Estado import State
+from Symbol import Symbol
+
+import xml.etree.ElementTree as ET
 
 class AFD:
-    def __init__(self, simbolos=None, estados=None, funcao_programa=None, estado_inicial=None, estados_finais=None):
-        if simbolos is not None and estados is not None and funcao_programa is not None and estado_inicial is not None and estados_finais is not None:
-            self.simbolos = simbolos.copy()
-            self.estados = estados.copy()
-            self.funcao_programa = funcao_programa.copy()
-            self.estado_inicial = deepcopy(estado_inicial)
-            self.estados_finais = estados_finais.copy()
-        else:
-            self.simbolos = set()
-            self.estados = set()
-            self.estados_finais = set()
-            self.funcao_programa = set()
-            self.estado_inicial = None
+    def __init__(self, _symbols: SymbolSet = SymbolSet(), 
+        _states: StateSet = StateSet(), 
+        _program_function: DeterministicTransitionSet = 
+        DeterministicTransitionSet(), _initial_state: State = State(""),
+        _final_states: StateSet = StateSet()
+        ) -> None:
+        self.symbols = _symbols
+        self.states = _states
+        self.program_function = _program_function
+        self.initial_state = _initial_state
+        self.final_states = _final_states
+        
+    def clone(self):
+        return AFD(self.symbols, 
+                   self.states, self.program_function, 
+                   self.initial_state, self.final_states)
+        
+    def toXML(self, filename: str):
+        final_str = "<AFD>\n\t<simbolos>"
+        for symbol in self.symbols.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(symbol)+"\"/>"
+        final_str += "\n\t</simbolos>"
+        final_str += "\n\t<estados>"
+        for state in self.states.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(state)+"\"/>"
+        final_str += "\n\t</estados>"
+        final_str += "\n\t<estadosFinais>"
+        for state in self.final_states.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(state)+"\"/>"
+        final_str += "\n\t</estadosFinais>"
+        final_str += "\n\t<funcaoPrograma>"
+        transition_set_list = list(self.program_function.individuals)
+        for transition in transition_set_list:
+            final_str += "\n\t\t<elemento origem=\"" + transition.origin.name + "\" simbolo=\"" + transition.symbol.symbol + "\" destino=\"" + transition.destiny.name + "\"/>"
+        final_str += "\n\t</funcaoPrograma>"
+        final_str += "\n\t<estadoInicial valor=\"" + self.initial_state.name + "\"/>"
+        final_str += "\n</AFD>"
+        file = open(filename, "w")
+        file.write(final_str)
+        file.close()    
+        
+    def from_xml(self, filename):
+        tree = ET.parse(filename)
+        root = tree.getroot()  
+        symbols_tag = root.find("simbolos")
+        symbols = symbols_tag.findall("elemento")
+        for symbol in symbols:
+            value = symbol.get("valor")
+            self.symbols.include(Symbol(value))
+        
+        states_tag = root.find("estados")
+        states = states_tag.findall("elemento")
+        for state in states:
+            value = state.get("valor")
+            self.states.include(State(value))
 
-    def get_estado_inicial(self):
-        return deepcopy(self.estado_inicial)
-
-    def set_estado_inicial(self, estado_inicial):
-        self.estado_inicial = deepcopy(estado_inicial)
-
-    def get_estados(self):
-        return self.estados.copy()
-
-    def set_estados(self, estados):
-        self.estados = estados.copy()
-
-    def get_estados_finais(self):
-        return self.estados_finais.copy()
-
-    def set_estados_finais(self, estados_finais):
-        self.estados_finais = estados_finais.copy()
-
-    def get_funcao_programa(self):
-        return self.funcao_programa.copy()
-
-    def set_funcao_programa(self, funcao_programa):
-        self.funcao_programa = funcao_programa.copy()
-
-    def get_simbolos(self):
-        return self.simbolos.copy()
-
-    def set_simbolos(self, simbolos):
-        self.simbolos = simbolos.copy()
-
-    def clonar(self):
-        return AFD(self.simbolos, self.estados, self.funcao_programa, self.estado_inicial, self.estados_finais)
-
-    def __str__(self):
-        s = "("
-        s += str(self.simbolos) + ","
-        s += str(self.estados) + ","
-        s += str(self.get_funcao_programa()) + ","
-        s += str(self.estado_inicial) + ","
-        s += str(self.estados_finais) + ")"
-        return s
-
-    def ler(self, path_arquivo):
-        # Parse XML file
-        doc = minidom.parse(path_arquivo)
-        automato = doc.documentElement
-
-        # Read symbols
-        simbolos_element = automato.getElementsByTagName("simbolos")[0]
-        simbolos = set()
-        for simbolo in simbolos_element.getElementsByTagName("elemento"):
-            simbolos.add(simbolo.getAttribute("valor"))
-        self.set_simbolos(simbolos)
-
-        # Read states
-        estados_element = automato.getElementsByTagName("estados")[0]
-        estados = set()
-        for estado in estados_element.getElementsByTagName("elemento"):
-            estados.add(estado.getAttribute("valor"))
-        self.set_estados(estados)
-
-        # Read final states
-        estados_finais_element = automato.getElementsByTagName("estadosFinais")[0]
-        estados_finais = set()
-        for estado_final in estados_finais_element.getElementsByTagName("elemento"):
-            estados_finais.add(estado_final.getAttribute("valor"))
-        self.set_estados_finais(estados_finais)
-
-        # Read initial state
-        estado_inicial_element = automato.getElementsByTagName("estadoInicial")[0]
-        self.set_estado_inicial(estado_inicial_element.getAttribute("valor"))
-
-        # Read transitions
-        funcao_programa_element = automato.getElementsByTagName("funcaoPrograma")[0]
-        funcao_programa = set()
-        for transicao in funcao_programa_element.getElementsByTagName("elemento"):
-            origem = transicao.getAttribute("origem")
-            destino = transicao.getAttribute("destino")
-            simbolo = transicao.getAttribute("simbolo")
-            funcao_programa.add((origem, simbolo, destino))
-        self.set_funcao_programa(funcao_programa)
-
-    def p(self, e, s):
-        for origem, simbolo, destino in self.get_funcao_programa():
-            if origem == e and simbolo == s:
-                return destino
+        final_states_tag = root.find("estadosFinais")
+        states = final_states_tag.findall("elemento")
+        for state in states:
+            value = state.get("valor")
+            self.final_states.include(State(value))
+            
+        program_function = root.find("funcaoPrograma")
+        states = program_function.findall("elemento")
+        for state in states:
+            origin = state.get("destino")
+            origin_s = State(origin)
+            destiny = state.get("destino")
+            destiny_s = State(destiny)
+            symbol = state.get("simbolo")
+            symbol_s = Symbol(symbol)
+            dt = DeterministicTransition(origin_s, destiny_s, symbol_s)
+            self.program_function.include(dt)
+        
+        initial_state = root.find("estadoInicial")
+        initial = initial_state.get("valor")
+        self.initial_state = State(initial)
+        
+    
+    def p(self, state: State, symbol: Symbol) -> State:
+        fp = self.program_function
+        list_fp = list(fp.individuals)
+        for tmp in list_fp:
+            if(tmp.origin == state and tmp.symbol == symbol):
+                return tmp.destiny
+        
         return None
-
-    def pe(self, e, p):
-        e_atual = e
-        for s in p:
-            e_atual = self.p(e_atual, s)
-            if e_atual is None:
-                return None
-        return e_atual
-
-    def aceita(self, p):
-        return self.pe(self.get_estado_inicial(), p) in self.get_estados_finais()
-
-    def to_xml(self, filename):
-        with open(filename + ".xml", "w") as f:
-            f.write("<AFD>\n")
-            f.write("\n")
-
-            f.write("\t<simbolos>\n")
-            for s in self.get_simbolos():
-                f.write(f'\t\t<elemento valor="{s}"/>\n')
-            f.write("\t</simbolos>\n")
-            f.write("\n")
-
-            f.write("\t<estados>\n")
-            for e in self.get_estados():
-                f.write(f'\t\t<elemento valor="{e}"/>\n')
-            f.write("\t</estados>\n")
-            f.write("\n")
-
-            f.write("\t<estadosFinais>\n")
-            for e in self.get_estados_finais():
-                f.write(f'\t\t<elemento valor="{e}"/>\n')
-            f.write("\t</estadosFinais>\n")
-            f.write("\n")
-
-            f.write("\t<funcaoPrograma>\n")
-            for origem, simbolo, destino in self.get_funcao_programa():
-                f.write(f'\t\t<elemento origem="{origem}" destino="{destino}" simbolo="{simbolo}"/>\n')
-            f.write("\t</funcaoPrograma>\n")
-            f.write("\n")
-
-            f.write(f'\t<estadoInicial valor="{self.get_estado_inicial()}"/>\n')
-            f.write("\n")
-
-            f.write("</AFD>\n")
+        
+    
+        
+    def __str__(self) -> str:
+        final_str = "<AFD>\n\t<simbolos>"
+        for symbol in self.symbols.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(symbol)+"\"/>"
+        final_str += "\n\t</simbolos>"
+        final_str += "\n\t<estados>"
+        for state in self.states.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(state)+"\"/>"
+        final_str += "\n\t</estados>"
+        final_str += "\n\t<estadosFinais>"
+        for state in self.final_states.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(state)+"\"/>"
+        final_str += "\n\t</estadosFinais>"
+        final_str += "\n\t<funcaoPrograma>"
+        transition_set_list = list(self.program_function.individuals)
+        for transition in transition_set_list:
+            final_str += "\n\t\t<elemento origem=\"" + transition.origin.name + "\" simbolo=\"" + transition.symbol.symbol + "\" destino=\"" + transition.destiny.name + "\"/>"
+        final_str += "\n\t</funcaoPrograma>"
+        final_str += "\n\t<estadoInicial valor=\"" + self.initial_state.name + "\"/>"
+        final_str += "\n</AFD>"
+        return final_str
+        
+    def getInitialState(self):
+        return self.getInitialState()
+    
+    
+        

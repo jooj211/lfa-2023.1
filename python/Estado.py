@@ -16,10 +16,15 @@ class State:
     def equal(self, state):
         return state.getName() == self.name
     
+    def __str__(self) -> str:
+        return self.getName()
+    
     def __eq__(self, __value: object) -> bool:
-        if(self == None and __value == None):
+        type_str = str(type(self)).split("'")[1]
+        type_str_2 = str(type(__value)).split("'")[1]
+        if(type_str_2 == 'NoneType' and type_str == 'NoneType'):
             return True
-        if(__value == None):
+        if(type_str_2 == 'NoneType'):
             return False
         return self.getName() == __value.name
     
