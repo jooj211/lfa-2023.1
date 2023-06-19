@@ -73,7 +73,7 @@ class AFD:
         program_function = root.find("funcaoPrograma")
         states = program_function.findall("elemento")
         for state in states:
-            origin = state.get("destino")
+            origin = state.get("origem")
             origin_s = State(origin)
             destiny = state.get("destino")
             destiny_s = State(destiny)

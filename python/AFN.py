@@ -11,12 +11,12 @@ class AFN:
     def __init__(self, symbols: SymbolSet = SymbolSet(), 
                  states: StateSet = StateSet(),
                  program_function: NonDeterministicTransitionSet = NonDeterministicTransitionSet(),
-                 initial_state: State = State(), 
+                 initial_state: State = State(""), 
                  final_states: StateSet = StateSet()) -> None:
         self.symbols = symbols.clone()
         self.states = states.clone()
         self.program_function = program_function.clone()
-        self.initial_state = initial_state.clone()
+        self.initial_state = initial_state
         self.final_states = final_states.clone()
         
     def clone(self):
@@ -33,6 +33,28 @@ class AFN:
         final_str += ")"
         return final_str
     
+    def toXML(self, filename: str):
+        final_str = "<AFD>\n\t<simbolos>"
+        for symbol in self.symbols.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(symbol)+"\"/>"
+        final_str += "\n\t</simbolos>"
+        final_str += "\n\t<estados>"
+        for state in self.states.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(state)+"\"/>"
+        final_str += "\n\t</estados>"
+        final_str += "\n\t<estadosFinais>"
+        for state in self.final_states.individuals:
+            final_str += "\n\t\t<elemento valor=\""+str(state)+"\"/>"
+        final_str += "\n\t</estadosFinais>"
+        final_str += "\n\t<funcaoPrograma>"
+        for tmp in self.program_function.individuals:
+            final_str += tmp.parse_in_elements()
+        final_str += "\n\t</funcaoPrograma>"
+        final_str += "\n\t<estadoInicial valor=\"" + self.initial_state.name + "\"/>"
+        
+        final_str += "\n</AFD>"
+        print(final_str)
+    
     def from_xml(self, filename: str):
         tree = ET.parse(filename)
         root = tree.getroot()  
@@ -41,3 +63,42 @@ class AFN:
         for symbol in symbols:
             value = symbol.get("valor")
             self.symbols.include(Symbol(value))
+            
+        states_tag = root.find("estados")
+        states = states_tag.findall("elemento")
+        for state in states:
+            value = state.get("valor")
+            self.states.include(State(value))
+            
+        final_states_tag = root.find("estadosFinais")
+        states = final_states_tag.findall("elemento")
+        for state in states:
+            value = state.get("valor")
+            self.final_states.include(State(value))
+            
+        initial_state = root.find("estadoInicial")
+        initial = initial_state.get("valor")
+        self.initial_state = State(initial)
+        dic:NonDeterministicTransition = {}
+        program_function = root.find("funcaoPrograma")
+        states = program_function.findall("elemento")
+        for state in states:
+            origin = state.get("origem")
+            origin_s = State(origin)
+            symbol = state.get("simbolo")
+            symbol_s = Symbol(symbol)
+            key = origin + symbol
+            if key in dic:
+                destiny = state.get("destino")
+                destiny_s = State(destiny)
+                dic[key].destiny.include(destiny_s)
+            else:
+                state_s = StateSet()
+                destiny = state.get("destino")
+                destiny_s = State(destiny)
+                state_s.include(destiny_s)
+                dic[key] = NonDeterministicTransition(origin_s, state_s, symbol_s)
+        program = NonDeterministicTransitionSet()
+        for key in dic:
+            program.include(dic[key])
+        self.program_function = program
