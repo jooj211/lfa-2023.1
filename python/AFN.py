@@ -120,7 +120,8 @@ class AFN:
             symbol = Symbol(word[index])
             tmpStateSet = self.p(state, symbol)
             for state in tmpStateSet.individuals:
-                destiny.include(state)
+                if(not destiny.include(state)):
+                    destiny.include(state)
             index += 1
             
         return destiny
