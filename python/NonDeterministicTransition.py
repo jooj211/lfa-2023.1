@@ -16,6 +16,12 @@ class NonDeterministicTransition:
             return True
         return False
     
+    def parse_in_elements(self) -> str:
+        final_str: str = ""
+        for tmp in self.destiny.individuals:
+            final_str += "\n\t\t<elemento origem=\"" + self.origin.name + "\" simbolo=\"" + self.symbol.symbol + "\" destino=\"" + tmp + "\"/>"
+        return final_str
+    
     def __hash__(self) -> int:
         st = str(self).replace('(', '').replace(')', '')
         sum = 0

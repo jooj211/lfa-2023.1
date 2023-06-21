@@ -92,6 +92,16 @@ class StateSet:
         resp += "}"
         return resp
     
+    def __hash__(self) -> int:
+        keys = ""
+        for key in self.individuals:
+            keys += key
+        sumed = 0
+        for i in keys:
+            sumed += ord(i)
+            
+        return sumed
+    
     def __len__(self):
         return len(self.individuals)
         
