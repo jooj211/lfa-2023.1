@@ -9,8 +9,7 @@ class State:
         self.name = name
     
     def clone(self):
-        state = State()
-        state.setName(self.name)
+        state = State(self.name)
         return state
     
     def equal(self, state):

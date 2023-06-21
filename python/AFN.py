@@ -4,6 +4,10 @@ from SymbolSet import SymbolSet
 from Symbol import Symbol
 from ConjuntoEstados import StateSet
 from Estado import State
+from AFD import AFD
+from DeterministicTransitionSet import DeterministicTransitionSet
+from DeterministicTransition import DeterministicTransition
+from StateSetSet import StateStateSet
 
 import xml.etree.ElementTree as ET
 
@@ -34,7 +38,7 @@ class AFN:
         return final_str
     
     def toXML(self, filename: str):
-        final_str = "<AFD>\n\t<simbolos>"
+        final_str = "<AFN>\n\t<simbolos>"
         for symbol in self.symbols.individuals:
             final_str += "\n\t\t<elemento valor=\""+str(symbol)+"\"/>"
         final_str += "\n\t</simbolos>"
@@ -52,8 +56,10 @@ class AFN:
         final_str += "\n\t</funcaoPrograma>"
         final_str += "\n\t<estadoInicial valor=\"" + self.initial_state.name + "\"/>"
         
-        final_str += "\n</AFD>"
-        print(final_str)
+        final_str += "\n</AFN>"
+        file = open(filename, "w")
+        file.write(final_str)
+        file.close()
     
     def from_xml(self, filename: str):
         tree = ET.parse(filename)
@@ -105,11 +111,10 @@ class AFN:
         
     def p(self, state: State, symbol: Symbol) -> StateSet:
         fp = self.program_function
-        list_fp = list(fp.individuals)
         destiny = StateSet()
-        for tmp in list_fp:
+        for tmp in fp.individuals:
             if(tmp.origin == state and tmp.symbol == symbol):
-                destiny.include(tmp.destiny)
+                return tmp.destiny
             
         return destiny
 
@@ -125,4 +130,65 @@ class AFN:
             index += 1
             
         return destiny
+    
+    def toAFD(self) -> AFD:
+        symbols = self.symbols.clone()
+        newStateSet = StateSet()
+        newTransitionSet = DeterministicTransitionSet()
+        newInitialState = State("<" + self.initial_state.name + ">")
+        newFinalStateSet = StateSet()
+        currentFinalStates = self.final_states
+        currentStateSetSet = StateStateSet()
+        currentStateSet = StateSet()
+        currentState = self.initial_state.clone()
+        tmpStateSet = StateSet()
+        currentStateSet.include(currentState)
+        currentStateSetSet.include(currentStateSet)
+        if(currentFinalStates.belongsTo(currentState)):
+            newFinalStateSet.include(newInitialState)
+            
+        newStateSet.include(newInitialState)
+        
+        for item in currentStateSetSet.individuals:
+            currentStateSet = item
+            currentStateSetSet.individuals.discard(item)
+            stateSetTmp = StateSet()
+            is_final_state = False
+            for _item in symbols.individuals:
+                item = symbols.individuals[_item]
+                stateSetTmp = StateSet()
+                for _state in currentStateSet.individuals:
+                    state = currentStateSet.individuals[_state]
+                    stateSetTmp = stateSetTmp.union(self.p(state, item))
+                
+                if not stateSetTmp.isEmpty():
+                    newName = str(stateSetTmp)
+                    newName = newName = newName[1:len(newName) - 1]
+                    newState = State("<" + newName + ">")
+                    for key in stateSetTmp.individuals:
+                        element = stateSetTmp.individuals[key]
+                        if currentFinalStates.belongsTo(element):
+                            is_final_state = True
+                    if not newStateSet.belongsTo(newState):
+                        newStateSet.include(newState)
+                        if(is_final_state):
+                            newFinalStateSet.include(newState)
+                            is_final_state = False
+                        originName = str(currentStateSet)
+                        originName = "<" + originName[1:len(originName) - 1] + ">"
+                        newOrigin = newStateSet.individuals[originName]
+                        newTransition = DeterministicTransition(newOrigin, newState, item)
+                        newTransitionSet.include(newTransition.clone())
+                        currentStateSetSet.include(stateSetTmp)
+                    
+                    else:
+                        originName = str(currentStateSet)
+                        originName = "<" + originName[1:len(originName) - 1] + ">"
+                        newOrigin = newStateSet.individuals[originName]
+                        newTransition = DeterministicTransition(newOrigin, newState, item)
+                        newTransitionSet.include(newTransition.clone())
+                        
+
+        afd = AFD(symbols, newStateSet, newTransitionSet,newInitialState, newFinalStateSet)
+        return afd
 
